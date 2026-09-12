@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Property Practice · Flashcards</title>
+<meta name="description" content="Review 23 real estate finance concepts with interactive flashcards.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23142d46'/%3E%3Cpath d='M8 23V13l8-6 8 6v10H8z' fill='%239febc5'/%3E%3C/svg%3E">
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#142d46;background:#eef2f6;font-synthesis:none}*{box-sizing:border-box}body{margin:0}button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid #206ac5;outline-offset:5px}button:disabled{opacity:.42;cursor:default}main{width:min(850px,100%);margin:auto;padding:38px 24px 28px}header{display:flex;gap:16px;align-items:center;border-bottom:1px solid #ccd5df;padding-bottom:24px}.logo{background:#142d46;color:#9febc5;border-radius:12px;padding:13px;font-size:24px}h1{font-size:clamp(24px,5vw,32px);margin:0;letter-spacing:-1px}.subtitle{margin:5px 0 0;color:#53657a;font-size:15px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:25px 0 16px}.eyebrow{font-size:13px;letter-spacing:2px;text-transform:uppercase;font-weight:750}.quiet{background:transparent;border:1px solid #bdc9d5;border-radius:9px;padding:9px 14px;color:#142d46}.stats{display:flex;justify-content:space-between;gap:10px;color:#53657a;font-size:14px;margin-bottom:10px}progress{display:block;width:100%;height:7px;border:0;border-radius:10px;overflow:hidden;accent-color:#16805c;background:#d9e1e9}progress::-webkit-progress-bar{background:#d9e1e9}progress::-webkit-progress-value{background:#16805c}.card{width:100%;min-height:340px;margin:22px 0 16px;border:1px solid #294761;border-radius:22px;background:#142d46;color:white;padding:30px 38px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:28px;box-shadow:0 15px 30px #142d4614;transition:background .2s,transform .2s}.card:hover{transform:translateY(-2px)}.card.back{background:#fff;color:#142d46;border-color:#cbd7e2}.side{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#9febc5}.back .side{color:#167451}.content{font-size:clamp(25px,4.5vw,36px);line-height:1.25;font-weight:650;overflow-wrap:anywhere}.back .content{font-size:clamp(18px,2.8vw,23px);line-height:1.55;font-weight:450}.hint{font-size:14px;color:#b9cadb}.back .hint{color:#53657a}.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grade{border:1px solid #bac7d3;border-radius:12px;padding:16px 10px;background:white;color:#142d46;font-weight:650}.grade.known{background:#146849;color:white;border-color:#146849}.footnote{text-align:center;font-size:14px;color:#53657a;line-height:1.7;margin-top:20px}.finish{background:white;border:1px solid #cbd7e2;border-radius:22px;padding:42px 24px;margin-top:22px;text-align:center}.finish h2{font-size:30px;margin:0 0 14px}.finish p{line-height:1.6;color:#53657a}.finish .actions{margin-top:26px}.badge{display:inline-block;font-size:40px;color:#146849;margin-bottom:12px}[hidden]{display:none!important}@media(max-width:480px){main{padding:22px 16px}.card{padding:25px 22px;min-height:350px}.stats{font-size:13px}.finish .actions{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){.card{transition:none;transform:none}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="logo" aria-hidden="true">⌂</div><div><h1>Property Practice</h1><p class="subtitle">Real estate concepts, one card at a time.</p></div></header>
+<div class="toolbar"><span class="eyebrow">Concept review · 23 cards</span><button class="quiet" id="restart">Shuffle &amp; restart</button></div>
+<div class="stats" aria-live="polite"><span id="position"></span><span id="score"></span></div>
+<progress id="progress" value="0" max="23" aria-label="Cards reviewed this round"></progress>
+<section id="study" aria-label="Flashcard review">
+<button class="card" id="card" aria-label="Reveal definition"><span class="side" id="side">The concept</span><span class="content" id="content"></span><span class="hint" id="hint">Tap to reveal definition ↻</span></button>
+<div class="actions"><button class="grade" id="again" disabled>↺ Still learning</button><button class="grade known" id="known" disabled>✓ Got it</button></div>
+<p class="footnote">Recall the definition, then flip to check yourself.<br>Keyboard: Space to flip · 1 Still learning · 2 Got it</p>
+</section>
+<section class="finish" id="finish" aria-live="polite" hidden><div class="badge" aria-hidden="true">✓</div><h2 id="resultTitle"></h2><p id="resultText"></p><div class="actions"><button class="grade" id="retry">Review missed cards</button><button class="grade known" id="all">Play all 23 again</button></div></section>
+<noscript><p>Please enable JavaScript to use the flashcards.</p></noscript>
+</main>
+<script>
+'use strict';
+const cards = [
+['Underwriting', 'The analytical process lenders or investors use to assess financial risk and determine whether to approve a loan, insure a property, or fund an investment.'],
+['Financial Proformas', "A financial document that forecasts a property's future income, expenses, and cash flow."],
+['Due Diligence', 'The research and inspection period between an accepted purchase offer and the final closing.'],
+['Capital Structures', 'Senior Debt (lowest risk), Mezzanine Debt, Preferred Equity, and Common Equity (highest risk and potential profit).'],
+['Financial/Cashflow Waterfalls', 'Net Operating Income (NOI) flows through the capital stack in order—from Senior Debt and Mezzanine Debt to Preferred Equity—before reaching the Partnership Waterfall, where remaining cash fills the LP and GP common equity buckets according to the LLC agreement.'],
+['Reporting Packages for lenders', 'A lender reporting package is a comprehensive set of financial and operational documents submitted during underwriting and throughout the loan term. It proves debt coverage, financial stability, and covenant compliance using rent rolls, income statements, balance sheets, cash flow statements, DSCR, schedule of real estate owned, and covenant calculations.'],
+['Requests for Qualifications (RFQ)', 'A formal document used by developers or property owners to screen and select qualified professionals, based on their past experience, skills, and track record rather than project pricing.'],
+['Requests for Proposals (RFP)', 'A formal document used to solicit competitive bids, terms, and pricing from landlords, developers, or service providers.'],
+['Joint Venture', 'A temporary partnership where two or more parties combine their money, land, or skills to complete a specific property project.'],
+['Net Operating Income (NOI)', 'In real estate, a key metric that measures the annual profitability and cash-flow potential of an income-generating property by subtracting day-to-day operating expenses from total revenue.'],
+['Internal Rate of Return (IRR)', 'The annualized, percentage rate of growth an investment is expected to generate over its entire lifespan, accounting for the time value of money.'],
+['Cap Rates (Capitalization Rates)', 'NOI / Value of property. Return of property without a loan.'],
+['Time Value of Money', 'A dollar today is worth more than the same dollar tomorrow because money can earn interest or profit right now.'],
+['Discounted Cash Flow (DCF) Analysis', "A method used to estimate the current value of an investment property by forecasting its future cash flows and discounting them back to today's value."],
+['Financial feasibility', 'A detailed study that determines whether a proposed property project will make enough money to cover its costs and risks.'],
+['Planning fees', 'Charges paid to a local government or planning authority to process land use, zoning, and building development applications.'],
+['Impact fees', 'A one-time charge levied by local governments on property developers to pay for the public infrastructure and services needed to support new construction.'],
+['Affordable housing requirements', 'Local, state, or federal rules that mandate or incentivize developers to include a set percentage of housing units priced for lower- and moderate-income households.'],
+['Utility connection fees', 'One-time charges paid to link a property to essential municipal or private utility systems like water, sewer, and electricity.'],
+['offering memorandum (OM)', 'In real estate, a comprehensive marketing and informational document prepared by a broker or seller to present a commercial property or investment opportunity to potential buyers.'],
+['Amortization', 'The process of paying off a home loan through regular monthly payments that cover both the principal and the interest.'],
+['Interest-only loans', 'Interest charges only for a set period of time; you do not pay down principal.'],
+['Present value / Discounted cash flow analysis', 'A valuation method used in real estate to estimate a property’s current worth based on the total money it is expected to generate in the future, adjusted for risk and the time value of money.']
+];
+const $ = id => document.getElementById(id);
+let deck = [], index = 0, missed = [], got = 0, flipped = false;
+function shuffle(list) {
+ const result = [...list];
+ for (let i = result.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [result[i], result[j]] = [result[j], result[i]];
+ }
+ return result;
+}
+function start(list, random = true) {
+ deck = random ? shuffle(list) : [...list]; index = 0; missed = []; got = 0; flipped = false;
+ $('study').hidden = false; $('finish').hidden = true;
+ render();
+}
+function render() {
+ const done = index === deck.length;
+ $('position').textContent = done ? 'Round complete' : `Card ${index + 1} of ${deck.length}`;
+ $('score').textContent = `${got} got it · ${missed.length} still learning`;
+ $('progress').max = deck.length; $('progress').value = index;
+ $('study').hidden = done; $('finish').hidden = !done;
+ if (done) {
+  $('resultTitle').textContent = missed.length ? 'A little closer to confident.' : 'You’ve got the whole round!';
+  $('resultText').textContent = `You marked ${got} of ${deck.length} concepts as “Got it.” ` + (missed.length ? `Give the remaining ${missed.length} another pass.` : 'Start a fresh round whenever you’re ready.');
+  $('retry').hidden = missed.length === 0;
+  (missed.length ? $('retry') : $('all')).focus();
+  return;
+ }
+ $('card').classList.toggle('back', flipped);
+ $('side').textContent = flipped ? 'The definition' : 'The concept';
+ $('content').textContent = cards[deck[index]][flipped ? 1 : 0];
+ $('hint').textContent = flipped ? 'Tap to return to the term ↻' : 'Tap to reveal definition ↻';
+ $('card').setAttribute('aria-label', `${flipped ? 'Definition' : 'Term'}: ${cards[deck[index]][flipped ? 1 : 0]}. ${flipped ? 'Show term' : 'Reveal definition'}.`);
+ $('again').disabled = $('known').disabled = !flipped;
+}
+function flip() { if (index < deck.length) { flipped = !flipped; render(); } }
+function grade(known) {
+ if (!flipped || index >= deck.length) return;
+ if (known) got++; else missed.push(deck[index]);
+ index++; flipped = false; render();
+ if (index < deck.length) $('card').focus();
+}
+$('card').addEventListener('click', flip);
+$('again').addEventListener('click', () => grade(false));
+$('known').addEventListener('click', () => grade(true));
+$('retry').addEventListener('click', () => { start(missed); $('card').focus(); });
+function restart() { start(cards.map((_, i) => i)); $('card').focus(); }
+$('all').addEventListener('click', restart);
+$('restart').addEventListener('click', restart);
+document.addEventListener('keydown', event => {
+ if (event.altKey || event.ctrlKey || event.metaKey || event.repeat || index >= deck.length) return;
+ if (event.code === 'Space' && (event.target === document.body || event.target === $('card'))) { event.preventDefault(); flip(); }
+ if (event.key === '1') { event.preventDefault(); grade(false); }
+ if (event.key === '2') { event.preventDefault(); grade(true); }
+});
+start(cards.map((_, i) => i), false);
+</script>
+</body>
+</html>
