@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emerald Fund — Interview Drill</title>
+<style>
+  :root{
+    --ink:#161a1d; --paper:#eef0ea; --line:#c9cdc0;
+    --accent:#2f5233; --accent2:#8a6d3b; --danger:#8c2f2f; --ok:#2f6b4f;
+    --mono: "IBM Plex Mono","Courier New",monospace;
+    --serif: "Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);line-height:1.45;}
+  .wrap{max-width:640px;margin:0 auto;padding:20px 18px 60px;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;}
+  header h1{font-size:1.2rem;margin:0;font-weight:600;}
+  .sub{font-family:var(--mono);font-size:0.7rem;color:#555;display:flex;gap:12px;}
+  .sub .sesstimer{font-weight:700;}
+  .sub .sesstimer.low{color:var(--danger);}
+  .scorebar{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;margin-bottom:20px;font-family:var(--mono);font-size:0.75rem;}
+  .scorebar div{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:2px 0;}
+  .stage{background:#fff;border:1px solid var(--ink);padding:20px 18px;margin-bottom:16px;}
+  .tag{font-family:var(--mono);font-size:0.68rem;color:var(--accent2);margin-bottom:8px;display:flex;justify-content:space-between;}
+  .timer{font-weight:700;} .timer.low{color:var(--danger);}
+  .qtext{font-size:1.05rem;margin:0 0 16px;}
+  textarea{width:100%;min-height:90px;font-family:var(--serif);font-size:0.95rem;padding:10px;border:1px solid var(--line);background:#fbfbf8;resize:vertical;}
+  .hedgebox{margin-top:10px;} .hedgebox summary{font-family:var(--mono);font-size:0.7rem;color:#555;cursor:pointer;}
+  .hedgeflags{font-family:var(--mono);font-size:0.75rem;margin-top:6px;color:var(--danger);min-height:1em;}
+  .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  button{font-family:var(--mono);font-size:0.78rem;padding:9px 14px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;}
+  button.ghost{background:transparent;color:var(--ink);}
+  button:disabled{opacity:0.35;cursor:default;}
+  .answer{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);display:none;}
+  .answer.show{display:block;}
+  .answer h4{margin:0 0 6px;font-size:0.75rem;font-family:var(--mono);color:var(--accent);}
+  .answer p{margin:0 0 14px;font-size:0.92rem;}
+  .gradestep{display:none;}
+  .gradestep.show{display:block;}
+  .glabel{font-family:var(--mono);font-size:0.72rem;color:#555;margin-bottom:6px;}
+  .gradebtns{display:flex;flex-direction:column;gap:6px;}
+  .gradebtns button{text-align:left;padding:9px 12px;}
+  .gc2{border-color:var(--ok);} .gc1{border-color:#a06a2f;} .gc0{border-color:var(--danger);}
+  .gd2{border-color:var(--ok);} .gd1{border-color:#a06a2f;} .gd0{border-color:var(--danger);}
+  .catlist{margin-top:8px;}
+  .catlist .bar{height:6px;background:var(--line);position:relative;margin-top:3px;margin-bottom:10px;}
+  .catlist .fill{position:absolute;top:0;left:0;height:100%;background:var(--accent);}
+  .catname{display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.72rem;}
+  .startscreen,.endscreen{text-align:center;padding:40px 10px;}
+  .startscreen h2,.endscreen h2{font-size:1.4rem;margin-bottom:6px;}
+  .startscreen p{color:#444;max-width:440px;margin:0 auto 20px;}
+  .modebtns{display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto;}
+  .modebtns button{width:100%;padding:14px;font-size:0.85rem;}
+  .pill{display:inline-block;font-family:var(--mono);font-size:0.65rem;padding:2px 8px;border:1px solid var(--ink);margin-right:6px;}
+  footer{text-align:center;font-family:var(--mono);font-size:0.68rem;color:#777;margin-top:30px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Emerald Fund — Interview Drill</h1>
+    <div class="sub"><span id="clockLabel">—</span><span id="sessTimer"></span></div>
+  </header>
+  <div id="app"></div>
+  <footer>data stored locally in this browser only · no server</footer>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG
+============================================================ */
+const WEIGHTS = { math:0.25, uw:0.25, ret:0.15, behav:0.10, comm:0.25 };
+const CATLABEL = { math:"Cap rate / value math", uw:"Underwriting frameworks", ret:"Returns & financing", behav:"Behavioral", comm:"Communication (delivery)" };
+const HEDGES = ["um","uh","you know","maybe","probably","i think","kind of","sort of","i guess","hopefully","just in case","i believe"];
+const SESSION_MINUTES = 30;
+const QUOTA_FULL = { math:6, uw:7, ret:4, behav:2 };
+const QUOTA_PRESSURE = { math:3, uw:3, ret:2, behav:2 };
+const TIME_BY_CAT = { math:20, uw:30, ret:30, behav:55 };
+
+/* ============================================================
+   STATIC QUESTION BANK
+============================================================ */
+const STATIC = [
+  // ---- UNDERWRITING (core) ----
+  {id:"u1",cat:"uw",prompt:"Walk me through underwriting a multifamily acquisition, start to finish.",
+   ideal:"Verify rent roll/leases/occupancy → normalize NOI (verify expenses, strip one-time items) → layer in CapEx → layer in debt → model cash flow to equity → underwrite stabilization/rent growth → model exit (exit cap) → calc IRR/equity multiple → sensitize key assumptions → solve backward to max price."},
+  {id:"u2",cat:"uw",prompt:"How would you evaluate a ground-up development deal?",
+   ideal:"Start with stabilized revenue (unit mix, rents, occupancy). Build total development cost: land, hard costs, soft costs, financing costs, contingency, carry. Model construction + lease-up timeline to stabilized NOI. Layer financing, then evaluate yield on cost, IRR, equity multiple. Stress-test rents, construction costs, timing, exit cap."},
+  {id:"u3",cat:"uw",prompt:"How do you determine the maximum price you can pay for a deal?",
+   ideal:"Solve backward from the firm's required return (target IRR or equity multiple) — don't invent a number you don't know. Build the model with realistic assumptions and find the price that still clears that return threshold."},
+  {id:"u4",cat:"uw",prompt:"Seller's OM shows $3M NOI. How do you verify it before trusting it?",
+   ideal:"Check rent roll, leases, concessions, collections, vacancy. Verify opex line by line — payroll, utilities, repairs, taxes, insurance, management fee — against actual bills, and strip non-recurring/seller-specific items to get normalized NOI."},
+  {id:"u5",cat:"uw",prompt:"40-unit building, current NOI $1M (rents 20% below market), stabilized NOI projected at $1.4M once repositioned, plus $2M of renovation spend. Price is $18M. How do you think about what to pay?",
+   ideal:"Going-in cap ~5.6%. Yield on cost uses TOTAL project cost (price + renovation), not just price: 1.4M / (18M+2M) = 7.0%. Want that yield on cost to carry enough spread over your projected exit cap to compensate for execution/lease-up risk — the exact spread is firm- and risk-dependent, not a fixed rule of thumb."},
+  {id:"u6",cat:"uw",prompt:"Midway through a reposition, your GC says unit-turn costs are running 15% over budget. What do you do, in order?",
+   ideal:"First diagnose the cause (materials, labor, scope creep, unforeseen condition). Re-run the model at the higher cost to see if the deal still pencils. Check contingency/reserves or need for additional funding. Then communicate proactively to lender/equity partners with a plan, not just a problem."},
+  {id:"u7",cat:"uw",prompt:"Your model shows an 18% IRR. I don't believe it — what do you check?",
+   ideal:"Check the major value drivers first — stabilized NOI and exit cap assumption. Then verify timing of cash flows, CapEx and debt assumptions. Benchmark against market comps, then sensitize to see which single assumption is driving the return."},
+  {id:"u8",cat:"uw",prompt:"What's the difference between planning fees, impact fees, and utility connection fees in due diligence?",
+   ideal:"Planning fees relate to entitlement/permitting process costs; impact fees are paid to the municipality to offset the development's burden on infrastructure/schools/services; utility connection fees are the direct cost to tie into water/sewer/power. All are development cost line items to underwrite up front."},
+  {id:"u9",cat:"uw",prompt:"What goes into a sources and uses table for a development deal?",
+   ideal:"Uses: land, hard costs, soft costs, financing costs, contingency, carrying costs during construction. Sources: construction debt, equity, sometimes mezz or preferred equity, subsidies/tax credits if applicable. Sources must equal uses."},
+  {id:"u10",cat:"uw",prompt:"Why does a construction timeline delay hurt returns, even if the total budget doesn't change?",
+   ideal:"Interest carry keeps accruing on the construction loan the whole time it's outstanding, so a delay adds real financing cost. It also pushes back the start of stabilized cash flow, which compresses IRR since money comes back later even if the eventual dollar amount is similar."},
+  {id:"u11",cat:"uw",prompt:"Lease-up is running slower than underwritten. What are the downstream effects?",
+   ideal:"Slower absorption delays stabilized NOI, which delays permanent refinancing and can strain the construction loan (interest reserve, extension risk). It lowers near-term cash flow and can pressure IRR even if the eventual stabilized rents are unchanged."},
+  {id:"u12",cat:"uw",prompt:"What's the difference between LTC and LTV, and when does each matter most?",
+   ideal:"LTC (loan-to-cost) measures the loan against total project cost — the primary constraint during construction/development. LTV (loan-to-value) measures the loan against appraised/stabilized value — the primary constraint for acquisition or permanent financing."},
+  {id:"u13",cat:"uw",prompt:"What happens after a development stabilizes — how does the debt typically change?",
+   ideal:"The construction loan is typically refinanced into permanent debt once the asset is stabilized and cash-flowing. Terms and rate depend on the market at that time, not a guaranteed improvement — the core concept is the transition itself: construction loan → stabilization → refinance into permanent financing."},
+  {id:"u14",cat:"uw",prompt:"For a multifamily deal, what leasing-related terms would you want to understand before underwriting rents?",
+   ideal:"Lease expirations/rollover schedule, concessions being offered, bad debt/collections, turnover rate, vacancy, and loss-to-lease (the gap between in-place rents and current market rents)."},
+  {id:"u15",cat:"uw",prompt:"For a mixed-use or commercial component, what leasing terms matter most, versus multifamily?",
+   ideal:"Tenant improvement (TI) allowances, leasing commissions, lease rollover risk, tenant credit quality, and downtime between tenants — these exist in multifamily too in a smaller way, but they're far more prominent and dollar-significant in commercial leasing."},
+  {id:"u16",cat:"uw",prompt:"A property has a large percentage of leases rolling in the same year. Good or bad?",
+   ideal:"It's a double-edged sword: upside if in-place rents are below market since rollover lets you mark to market quickly, but it also concentrates rollover/vacancy risk in one year if the market softens or re-leasing takes longer than expected."},
+  {id:"u17",cat:"uw",prompt:"What would you look at in market research before underwriting rent assumptions?",
+   ideal:"Comparable properties' achieved rents (not just asking rents), concessions being offered, occupancy levels, new supply/development pipeline, historical rent growth trends, and demographics/employment drivers where relevant."},
+  {id:"u18",cat:"uw",prompt:"Your principal asks for a model in two hours but some information is missing. What do you do?",
+   ideal:"State your assumptions clearly, flag exactly what's missing and why, produce the best defensible preliminary analysis with those assumptions, and note it should be updated once the missing information arrives — don't silently guess or stall waiting for perfect data."},
+  {id:"u19",cat:"uw",prompt:"Actual operating expenses are notably lower than comparable buildings. What's your reaction?",
+   ideal:"Don't take it as good news at face value — investigate whether the property is genuinely efficient or whether expenses are understated, deferred (deferred maintenance), or missing a line item the comps include."},
+  {id:"u20",cat:"uw",prompt:"A deal's returns only work if rents grow 4% annually and the exit cap compresses 50bps. What's your read?",
+   ideal:"That's relying on aggressive, favorable assumptions on both ends. I'd build a more conservative base case and a downside case with flatter rent growth and a flat-to-higher exit cap, and see whether the deal still clears the firm's required return under those conditions."},
+  {id:"u21",cat:"uw",prompt:"Does NOI include debt service, CapEx, or depreciation?",
+   ideal:"No to all three. NOI is purely property-level operating income before financing (debt service), before capital expenditures, and before non-cash items like depreciation. Those all get layered in after NOI."},
+  {id:"u22",cat:"uw",prompt:"Walk me from gross potential rent down to NOI.",
+   ideal:"Gross potential rent (GPR) → less vacancy/credit loss → plus other income (parking, laundry, fees) and less concessions → effective gross income (EGI) → less operating expenses → NOI."},
+  {id:"u23",cat:"uw",prompt:"We're about to sign an LOI tomorrow. What are the major due-diligence buckets you'd want to run?",
+   ideal:"Financial/lease review, physical/property condition, legal/title/zoning, environmental, financing, market research, and taxes/insurance — a due-diligence checklist spanning documents, site, and third-party reports."},
+  {id:"u24",cat:"uw",prompt:"Why does property tax matter differently for a California acquisition specifically?",
+   ideal:"Under California's reassessment rules, a change in ownership can trigger a reassessment of the property's taxable value, meaning the seller's historical property tax expense may not represent what you'll actually pay post-acquisition. Underwrite taxes based on expected post-sale assessed value, not just the trailing number."},
+  {id:"u25",cat:"uw",prompt:"You inherit someone else's acquisition model. How do you QA it before trusting the output?",
+   ideal:"Check assumptions against source documents, verify formulas and cell references, confirm cash flow timing, check the debt schedule, verify the exit calculation, check units and sign conventions, then sanity-check outputs against comps and run sensitivities."},
+  {id:"u26",cat:"uw",prompt:"What would make you recommend killing a deal?",
+   ideal:"No single formula — this is judgment. Signal examples: returns don't clear the hurdle even in the base case, key assumptions rely on aggressive rent growth or cap compression with no margin, unresolved legal/environmental/title issues, or a business plan that only works if everything goes right with no downside cushion."},
+  {id:"u27",cat:"uw",prompt:"What makes you skeptical when an OM shows unusually strong returns?",
+   ideal:"Check whether the seller's NOI is real or inflated (concessions masked, deferred maintenance, one-time items included), whether rent growth and exit cap assumptions are aggressive versus market, and whether the numbers were stress-tested at all — strong headline returns built on optimistic assumptions are a red flag, not a green light."},
+  {id:"u28",cat:"uw",prompt:"The model clears our return hurdle by only 50 basis points. How comfortable are you?",
+   ideal:"Not very, on its own. A 50bps cushion means almost any negative surprise (rate move, slower lease-up, cost overrun) could push it below hurdle. I'd want to see the sensitivity analysis on the key drivers before recommending we proceed at that thin a margin."},
+
+  // ---- RETURNS / FINANCING ----
+  {id:"r1",cat:"ret",prompt:"Deal A: 22% IRR, 1.6x equity multiple. Deal B: 16% IRR, 2.1x equity multiple. Why?",
+   ideal:"Deal A has more favorable timing of cash flows on a time-weighted basis; Deal B returns more total dollars per dollar invested but takes longer. Without knowing hold period, leverage, and exact cash flow timing I can't say precisely why — I'd want to check whether A returned capital earlier, used more leverage, or simply had a shorter hold, since any of those could produce this pattern."},
+  {id:"r2",cat:"ret",prompt:"Define equity multiple in one sentence, and name what it ignores.",
+   ideal:"Total distributions ÷ equity invested. It ignores the timing of cash flows — how long it took to get that money back."},
+  {id:"r3",cat:"ret",prompt:"What's the difference between levered and unlevered IRR?",
+   ideal:"Unlevered IRR looks at the property's own cash flows before any financing — as if bought all cash. Levered IRR looks at cash flows to equity after debt service — what the actual equity investor experiences, including the effect of leverage."},
+  {id:"r4",cat:"ret",prompt:"What does leverage do to equity returns, both directions?",
+   ideal:"Leverage can amplify equity returns when debt is cheaper than the unlevered yield, but it also amplifies downside and adds debt-service, covenant, and refinance risk."},
+  {id:"r5",cat:"ret",prompt:"Define negative leverage in one sentence.",
+   ideal:"Negative leverage occurs when the cost of debt exceeds the property's unlevered yield, making additional leverage dilutive rather than accretive to returns."},
+  {id:"r6",cat:"ret",prompt:"Name at least three real economic reasons market cap rates rise (not the math result).",
+   ideal:"Higher interest rates, higher required risk premium, weaker growth expectations, reduced capital availability, weaker overall investor demand."},
+  {id:"r7",cat:"ret",prompt:"What assumptions would you sensitize on a multifamily value-add deal?",
+   ideal:"Rent growth × exit cap, construction/renovation cost × achievable rents, interest rate × exit cap, lease-up pace × rents — vary the assumptions that most affect the outcome, not everything equally."},
+  {id:"r8",cat:"ret",prompt:"DSCR is 1.20x and the lender's covenant minimum is 1.25x. What do you say?",
+   ideal:"That's below the lender's covenant, a real problem worth flagging immediately. Before assuming the deal is dead, I'd investigate whether NOI can be improved, expenses trimmed, or the loan resized/restructured with the lender, rather than ruling it out outright."},
+  {id:"r9",cat:"ret",prompt:"How would you think about sizing a loan for an acquisition?",
+   ideal:"Lenders typically size proceeds off three tests — LTV, DSCR, and debt yield — and the most restrictive of the three usually determines actual proceeds, not just the one you'd prefer."},
+  {id:"r10",cat:"ret",prompt:"What's yield on cost, and how does it compare to a market cap rate?",
+   ideal:"Yield on cost is stabilized NOI divided by total project cost (not purchase price alone for a development/reposition). Comparing it to the market cap rate at exit tells you whether you're creating value — a yield on cost meaningfully above the market exit cap suggests you're being compensated for development/execution risk."},
+
+  // ---- BEHAVIORAL ----
+  {id:"b1",cat:"behav",prompt:"Tell me about yourself and why Emerald Fund.",
+   ideal:"Background → real estate underwriting experience → operations/finance experience → personal connection to Emerald's mission (transit-oriented, mixed-use development) → why this role specifically."},
+  {id:"b2",cat:"behav",prompt:"Walk me through a past deal you underwrote, start with the numbers.",
+   ideal:"Lead with purchase price and business plan first, then the problem you found, your analysis/resolution, and the financial outcome. Don't lead with the anecdote before the numbers."},
+  {id:"b3",cat:"behav",prompt:"Tell me about a time you disagreed with or challenged an assumption in a deal.",
+   ideal:"Name a specific assumption (e.g. a rent growth rate or expense normalization), your reasoning for pushing back, how you brought data to support it, and the outcome — calm, factual, not combative."},
+  {id:"b4",cat:"behav",prompt:"What's a weakness or mistake you've learned from?",
+   ideal:"Something real and specific, tied to a lesson you've since applied — not a disguised strength. Keep it short, own it plainly, move to the fix."},
+  {id:"b5",cat:"behav",prompt:"Your resume goes real estate investing → operations/finance → now back to real estate at Emerald. Why the path?",
+   ideal:"Own it as a deliberate arc, not a random pivot: real estate is where your interest started, the operations/finance role deepened your financial-analysis, reporting, and cross-functional skills, and this role is where both come together — hands-on real estate investment work at a company whose values (transit-oriented development) you personally hold."},
+
+  // ---- MATH (conceptual, non-arithmetic) ----
+  {id:"ms1",cat:"math",prompt:"You buy at a 5% cap rate. Why might you underwrite exit at 5.5%, not 5%?",
+   ideal:"Higher exit cap is the conservative assumption — protects against aging asset, rate/market uncertainty over the hold. If reality is better, that's upside.",
+   time:30},
+  {id:"ms2",cat:"math",prompt:"What's the difference between LTC and LTV as loan constraints?",
+   ideal:"LTC (loan-to-cost) constrains the loan against total project cost, primary during construction. LTV (loan-to-value) constrains it against appraised/stabilized value, primary for acquisition or permanent debt.",
+   time:30},
+];
+
+/* ============================================================
+   MATH GENERATORS — constrained to realistic interview ranges
+============================================================ */
+function rnd(min,max,step){ const n=Math.round((Math.random()*(max-min)+min)/step)*step; return n; }
+function money(n){ return "$"+(n>=1e6? (n/1e6).toFixed(n%1e6===0?0:1)+"M" : (n/1e3)+"K"); }
+
+const MATH_GENS = [
+  function capFromNOIValue(){
+    // pick realistic cap 4-8%, derive value, present NOI+value, ask for cap
+    const cap = rnd(4,8,0.25);
+    const val = rnd(15,60,1)*1e6;
+    const noi = val*(cap/100);
+    return {prompt:`NOI is ${money(noi)}, value is ${money(val)}. What's the cap rate?`,
+      ideal:`Cap rate = NOI ÷ Value = ${money(noi)} ÷ ${money(val)} = ${cap}%.`};
+  },
+  function valueFromNOICap(){
+    const noi = rnd(1,4,0.1)*1e6, cap = rnd(4,8,0.25);
+    const val = (noi/(cap/100));
+    return {prompt:`NOI is ${money(noi)}, cap rate is ${cap}%. What's the value?`,
+      ideal:`Value = NOI ÷ Cap rate = ${money(noi)} ÷ ${cap}% = ${money(val)}.`};
+  },
+  function richOrCheap(){
+    const compCap = rnd(4.5,7,0.25);
+    const dealCap = +(compCap + (Math.random()<0.5? -1:1)*rnd(0.25,1.25,0.25)).toFixed(2);
+    const noi = rnd(1.5,4,0.1)*1e6;
+    const price = noi/(dealCap/100);
+    const verdict = dealCap < compCap ? "richer (more expensive) than market" : "cheaper than market";
+    return {prompt:`A deal is priced at ${money(price)} with ${money(noi)} NOI. Comps trade at ${compCap}%. Rich or cheap versus market?`,
+      ideal:`${money(noi)} ÷ ${money(price)} = ${dealCap}% cap. That's ${dealCap < compCap ? "below" : "above"} the ${compCap}% comp cap rate, meaning this deal is priced ${verdict}.`};
+  },
+  function debtEquitySplit(){
+    const price = rnd(15,60,1)*1e6, ltv = rnd(50,75,5);
+    const debt = price*(ltv/100), equity = price-debt;
+    return {prompt:`${money(price)} purchase price, ${ltv}% LTV. What's the debt and equity split?`,
+      ideal:`Debt = ${money(price)} × ${ltv}% = ${money(debt)}. Equity = ${money(price)} − ${money(debt)} = ${money(equity)}.`};
+  },
+  function dscrCheck(){
+    // realistic DSCR range ~1.0-1.7x
+    const dscr = rnd(1.0,1.7,0.05);
+    const ds = rnd(1.2,3,0.1)*1e6;
+    const noi = ds*dscr;
+    const covenant = rnd(1.15,1.3,0.05).toFixed(2);
+    const healthy = dscr >= covenant;
+    return {prompt:`NOI is ${money(noi)}, annual debt service is ${money(ds)}. Lender covenant minimum is ${covenant}x. What's the DSCR, and does it clear the covenant?`,
+      ideal:`DSCR = NOI ÷ Debt Service = ${money(noi)} ÷ ${money(ds)} = ${dscr.toFixed(2)}x. That ${healthy?"clears":"is below"} the ${covenant}x covenant — ${healthy? "still worth checking cushion":"a real problem worth flagging and investigating (resize, restructure, or improve NOI) before ruling the deal out"}.`};
+  },
+  function debtYield(){
+    // realistic debt yield ~6-12%
+    const dy = rnd(6,12,0.25);
+    const loan = rnd(15,45,1)*1e6;
+    const noi = loan*(dy/100);
+    return {prompt:`NOI is ${money(noi)}, loan amount is ${money(loan)}. What's the debt yield?`,
+      ideal:`Debt yield = NOI ÷ Loan amount = ${money(noi)} ÷ ${money(loan)} = ${dy}%. It's the lender's unlevered yield on their loan balance, independent of rate or amortization.`};
+  },
+  function opexFromEGINOI(){
+    const egi = rnd(1.3,2.5,0.1)*1e6, noi = rnd(0.7,1.2,0.1)*1e6;
+    const opex = egi-noi;
+    return {prompt:`EGI (effective gross income) is ${money(egi)}, NOI is ${money(noi)}. What are total operating expenses?`,
+      ideal:`OpEx = EGI − NOI = ${money(egi)} − ${money(noi)} = ${money(opex)}.`};
+  },
+  function capValueInverse(){
+    const noi = rnd(2,6,0.5)*1e6, cap1 = rnd(4,6,0.25), cap2 = +(cap1+rnd(2,3,0.25)).toFixed(2);
+    const v1 = noi/(cap1/100), v2 = noi/(cap2/100);
+    return {prompt:`Cap rate moves from ${cap1}% to ${cap2}% with NOI (${money(noi)}) unchanged. What happens to value?`,
+      ideal:`Value goes from ${money(v1)} to ${money(v2)} — cap rate up, value down, moving inversely.`};
+  },
+];
+function drawMathQuestion(){
+  const gen = MATH_GENS[Math.floor(Math.random()*MATH_GENS.length)];
+  const q = gen();
+  return {id:"gen_"+Math.random().toString(36).slice(2,9), cat:"math", prompt:q.prompt, ideal:q.ideal, generated:true};
+}
+
+/* ============================================================
+   STATE — content and delivery graded independently
+============================================================ */
+let state = load() || { contentGrades:{}, deliveryGrades:{}, mode:null, queue:[], qIndex:0, sessionEnd:null };
+function load(){ try{ return JSON.parse(localStorage.getItem("efdrill3")); }catch(e){ return null; } }
+function save(){ localStorage.setItem("efdrill3", JSON.stringify(state)); }
+
+function contentIdsForCat(cat){
+  if(cat==="math") return STATIC.filter(q=>q.cat==="math").map(q=>q.id).concat(["math_gen"]);
+  return STATIC.filter(q=>q.cat===cat).map(q=>q.id);
+}
+
+function catContentScore(cat){
+  const ids = contentIdsForCat(cat);
+  let sum=0,count=0;
+  ids.forEach(id=>{
+    if(state.contentGrades[id]!==undefined){ sum+=state.contentGrades[id]; count++; }
+  });
+  if(count===0) return 0;
+  const rawPct = (sum/(count*2))*100; // content grade max = 2
+  const coverage = Math.min(1, count/ids.length);
+  return Math.round(rawPct * (0.5+0.5*coverage));
+}
+
+function commScore(){
+  // every graded attempt contributes delivery, regardless of whether content was right — fixes disappearing bug
+  const vals = Object.values(state.deliveryGrades);
+  if(vals.length===0) return 0;
+  const sum = vals.reduce((a,b)=>a+b,0);
+  return Math.round((sum/(vals.length*2))*100); // delivery grade max = 2
+}
+
+function overallReadiness(){
+  const scores = {
+    math: catContentScore("math"), uw: catContentScore("uw"),
+    ret: catContentScore("ret"), behav: catContentScore("behav"),
+    comm: commScore()
+  };
+  let sum=0;
+  Object.keys(WEIGHTS).forEach(k=> sum += scores[k]*WEIGHTS[k]);
+  return {total: Math.round(sum), scores};
+}
+
+/* ============================================================
+   QUEUE BUILDING
+============================================================ */
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+
+function pickFromCat(cat, n){
+  if(cat==="math"){
+    const out=[];
+    for(let i=0;i<n;i++){
+      if(i%3===2){ out.push(STATIC.filter(q=>q.cat==="math")[Math.floor(Math.random()*STATIC.filter(q=>q.cat==="math").length)]); }
+      else out.push(drawMathQuestion());
+    }
+    return out;
+  }
+  const pool = STATIC.filter(q=>q.cat===cat).slice();
+  pool.sort((a,b)=>(state.contentGrades[a.id]??-1)-(state.contentGrades[b.id]??-1));
+  const low = pool.slice(0, Math.ceil(pool.length*0.6));
+  const rest = pool.slice(Math.ceil(pool.length*0.6));
+  const ordered = shuffle(low).concat(shuffle(rest));
+  const out=[];
+  for(let i=0;i<n;i++) out.push(ordered[i%ordered.length]);
+  return out;
+}
+
+function buildQueue(mode){
+  const quota = mode==="pressure" ? QUOTA_PRESSURE : QUOTA_FULL;
+  let list=[];
+  Object.keys(quota).forEach(cat=> list = list.concat(pickFromCat(cat, quota[cat])));
+  return shuffle(list);
+}
+
+function startSession(mode){
+  state.mode = mode;
+  state.queue = buildQueue(mode);
+  state.qIndex = 0;
+  state.sessionEnd = Date.now() + SESSION_MINUTES*60*1000;
+  save();
+  renderQuestion();
+}
+
+function startMathOnly(){
+  state.mode="mathonly";
+  state.queue = Array.from({length:16}, ()=> Math.random()<0.75? drawMathQuestion() : STATIC.filter(q=>q.cat==="math")[Math.floor(Math.random()*STATIC.filter(q=>q.cat==="math").length)]);
+  state.qIndex=0;
+  state.sessionEnd=null;
+  save();
+  renderQuestion();
+}
+
+/* ============================================================
+   RENDER
+============================================================ */
+const app = document.getElementById("app");
+let qTimerInterval=null, sessTimerInterval=null, qTimeLeft=25;
+
+function baseIdOf(q){ return q.cat==="math" && q.generated ? "math_gen" : q.id; }
+function timeForQ(q){ return q.time || TIME_BY_CAT[q.cat] || 30; }
+
+function renderStart(){
+  clearInterval(sessTimerInterval);
+  const st = document.getElementById("sessTimer"); if(st) st.textContent="";
+  const r = overallReadiness();
+  app.innerHTML = `
+    <div class="startscreen">
+      <h2>Readiness: ${r.total}/100</h2>
+      <p>Weighted 25% math · 25% underwriting · 15% returns/financing · 10% behavioral · 25% delivery. Content and delivery are graded separately.</p>
+      <div class="modebtns">
+        <button onclick="startSession('full')">Start 30-min full drill</button>
+        <button class="ghost" onclick="startMathOnly()">Cap-rate / math reps (randomized)</button>
+        <button class="ghost" onclick="startSession('pressure')">Final 10 — CFO pressure test</button>
+      </div>
+      <div class="catlist" style="margin-top:28px;text-align:left;">
+        ${Object.keys(CATLABEL).map(c=>`
+          <div class="catname"><span>${CATLABEL[c]}</span><span>${r.scores[c]}%</span></div>
+          <div class="bar"><div class="fill" style="width:${r.scores[c]}%"></div></div>`).join("")}
+      </div>
+      <div style="margin-top:18px;"><button class="ghost" onclick="resetAll()" style="font-size:0.65rem;padding:6px 10px;">reset all progress</button></div>
+    </div>`;
+}
+
+function currentQ(){ return state.queue[state.qIndex]; }
+
+function renderQuestion(){
+  clearInterval(qTimerInterval);
+  if(state.sessionEnd){ startSessTimer(); }
+  if(state.qIndex >= state.queue.length){ return renderEnd(); }
+  const q = currentQ();
+  qTimeLeft = timeForQ(q);
+  const r = overallReadiness();
+  app.innerHTML = `
+    <div class="scorebar">
+      ${Object.keys(CATLABEL).map(c=>`<div><span>${CATLABEL[c].split(" (")[0]}</span><b>${r.scores[c]}%</b></div>`).join("")}
+    </div>
+    <div class="stage">
+      <div class="tag"><span class="pill">${CATLABEL[q.cat].split(" (")[0]}</span><span class="timer" id="timerDisplay">0:${String(qTimeLeft).padStart(2,"0")}</span></div>
+      <p class="qtext">${q.prompt}</p>
+      <textarea id="userAns" placeholder="Type or paste what you'd say..."></textarea>
+      <details class="hedgebox">
+        <summary>scan for filler/hedge words</summary>
+        <textarea id="hedgeCheck" placeholder="paste your spoken answer here" style="min-height:60px;"></textarea>
+        <div class="hedgeflags" id="hedgeFlags"></div>
+      </details>
+      <div class="row">
+        <button onclick="revealAnswer()">Reveal ideal answer</button>
+        <button class="ghost" onclick="skipQuestion()">Skip</button>
+      </div>
+      <div class="answer" id="answerBlock">
+        <h4>ideal answer</h4>
+        <p>${q.ideal}</p>
+
+        <div class="gradestep show" id="step1">
+          <div class="glabel">step 1 — was the content correct?</div>
+          <div class="gradebtns">
+            <button class="gc2" onclick="gradeContent(2)">Correct</button>
+            <button class="gc1" onclick="gradeContent(1)">Partial / missing something</button>
+            <button class="gc0" onclick="gradeContent(0)">Wrong / couldn't answer</button>
+          </div>
+        </div>
+
+        <div class="gradestep" id="step2">
+          <div class="glabel">step 2 — how was the delivery?</div>
+          <div class="gradebtns">
+            <button class="gd2" onclick="gradeDelivery(2)">Clean & decisive, no hedging</button>
+            <button class="gd1" onclick="gradeDelivery(1)">Some hedging / rambling</button>
+            <button class="gd0" onclick="gradeDelivery(0)">Long-winded, trailed off, lots of filler</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;font-family:var(--mono);font-size:0.7rem;color:#777;">question ${state.qIndex+1} / ${state.queue.length}</div>`;
+  document.getElementById("hedgeCheck").addEventListener("input", checkHedges);
+  startQTimer();
+}
+
+function startQTimer(){
+  const disp = document.getElementById("timerDisplay");
+  qTimerInterval = setInterval(()=>{
+    qTimeLeft--;
+    if(qTimeLeft<=0){ clearInterval(qTimerInterval); disp.textContent="0:00"; disp.classList.add("low"); return; }
+    disp.textContent = `0:${String(qTimeLeft).padStart(2,"0")}`;
+    if(qTimeLeft<=8) disp.classList.add("low");
+  },1000);
+}
+
+function startSessTimer(){
+  clearInterval(sessTimerInterval);
+  const label = document.getElementById("sessTimer");
+  function tick(){
+    const remain = state.sessionEnd - Date.now();
+    if(remain<=0){ clearInterval(sessTimerInterval); renderEnd(); return; }
+    const m=Math.floor(remain/60000), s=Math.floor((remain%60000)/1000);
+    label.textContent = `session ${m}:${String(s).padStart(2,"0")}`;
+    label.classList.toggle("low", remain<5*60*1000);
+  }
+  tick();
+  sessTimerInterval = setInterval(tick,1000);
+}
+
+function checkHedges(){
+  const val = document.getElementById("hedgeCheck").value.toLowerCase();
+  const found = HEDGES.filter(h=>val.includes(h));
+  const box = document.getElementById("hedgeFlags");
+  box.textContent = found.length ? "flagged: "+found.join(", ") : (val.length? "no hedge words found — clean." : "");
+}
+
+function revealAnswer(){ document.getElementById("answerBlock").classList.add("show"); clearInterval(qTimerInterval); }
+
+let pendingContentGrade = null;
+
+function gradeContent(v){
+  pendingContentGrade = v;
+  document.getElementById("step1").classList.remove("show");
+  document.getElementById("step2").classList.add("show");
+}
+
+function gradeDelivery(v){
+  const q = currentQ();
+  const bid = baseIdOf(q);
+  state.contentGrades[bid] = pendingContentGrade;
+  state.deliveryGrades[bid+"_d"+Math.random().toString(36).slice(2,6)] = v; // each attempt contributes independently to delivery habit score
+  // recycle: if content wrong/partial, bring the SAME concept back (for static items) or a fresh number set (for generated math)
+  if(pendingContentGrade<=1){
+    const replacement = (q.cat==="math" && q.generated) ? drawMathQuestion() : q;
+    const insertAt = Math.min(state.queue.length, state.qIndex+4);
+    state.queue.splice(insertAt,0,replacement);
+  }
+  save();
+  pendingContentGrade = null;
+  state.qIndex++;
+  save();
+  renderQuestion();
+}
+
+function skipQuestion(){ state.qIndex++; save(); renderQuestion(); }
+
+function renderEnd(){
+  clearInterval(qTimerInterval); clearInterval(sessTimerInterval);
+  const r = overallReadiness();
+  app.innerHTML = `
+    <div class="endscreen">
+      <h2>Session complete</h2>
+      <p style="font-family:var(--mono);font-size:1.6rem;margin:10px 0;">Readiness: ${r.total}/100</p>
+      <div class="catlist" style="text-align:left;max-width:420px;margin:20px auto;">
+        ${Object.keys(CATLABEL).map(c=>`
+          <div class="catname"><span>${CATLABEL[c]}</span><span>${r.scores[c]}%</span></div>
+          <div class="bar"><div class="fill" style="width:${r.scores[c]}%"></div></div>`).join("")}
+      </div>
+      <div class="modebtns">
+        <button onclick="startSession('full')">Run another full round</button>
+        <button class="ghost" onclick="renderStart()">Back to menu</button>
+      </div>
+    </div>`;
+}
+
+function resetAll(){
+  if(confirm("Clear all saved progress?")){
+    state = { contentGrades:{}, deliveryGrades:{}, mode:null, queue:[], qIndex:0, sessionEnd:null };
+    save(); renderStart();
+  }
+}
+
+function tickClock(){ document.getElementById("clockLabel").textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
+setInterval(tickClock,1000); tickClock();
+
+renderStart();
+</script>
+</body>
+</html>
